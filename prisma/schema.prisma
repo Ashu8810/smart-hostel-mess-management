@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  password       String
+  role           String    // "STUDENT", "WARDEN", "ADMIN"
+  createdAt      DateTime  @default(now())
+  
+  // Student specific relations
+  mealBookings   MealBooking[]
+  grievances     Grievance[]
+  attendance     Attendance[]
+}
+
+model MealBooking {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  date           DateTime
+  breakfast      Boolean   @default(false)
+  lunch          Boolean   @default(false)
+  dinner         Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+
+  @@unique([userId, date])
+}
+
+model Grievance {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  title          String
+  description    String
+  status         String    @default("PENDING") // "PENDING", "RESOLVED"
+  createdAt      DateTime  @default(now())
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  date      DateTime
+  mealType  String   // "BREAKFAST", "LUNCH", "DINNER"
+  markedAt  DateTime @default(now())
+}
